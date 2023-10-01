@@ -5,14 +5,20 @@ type Book = record {
   author : text;
   updatedAt : opt nat64;
   genre : text;
-  publicationDate : nat64;
+  publicationDate : text;
+};
+type BookPayload = record {
+  title : text;
+  author : text;
+  genre : text;
+  publicationDate : text;
 };
 type _AzleResult = variant { Ok : Book; Err : text };
 type _AzleResult_1 = variant { Ok : vec Book; Err : text };
 service : () -> {
-  addBook : (Book) -> (_AzleResult);
+  addBook : (BookPayload) -> (_AzleResult);
   deleteBook : (text) -> (_AzleResult);
   getBook : (text) -> (_AzleResult) query;
   getBooks : () -> (_AzleResult_1) query;
-  updateBook : (text, Book) -> (_AzleResult);
+  updateBook : (text, BookPayload) -> (_AzleResult);
 }
