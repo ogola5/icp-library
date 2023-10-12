@@ -8,11 +8,12 @@ type Book = record {
   publicationDate : nat64;
 };
 type _AzleResult = variant { Ok : Book; Err : text };
-type _AzleResult_1 = variant { Ok : vec Book; Err : text };
+type _AzleResult_1 = variant { Ok : opt Book; Err : text };
+type _AzleResult_2 = variant { Ok : vec Book; Err : text };
 service : () -> {
   addBook : (Book) -> (_AzleResult);
-  deleteBook : (text) -> (_AzleResult);
+  deleteBook : (text) -> (_AzleResult_1);
   getBook : (text) -> (_AzleResult) query;
-  getBooks : () -> (_AzleResult_1) query;
+  getBooks : () -> (_AzleResult_2) query;
   updateBook : (text, Book) -> (_AzleResult);
 }
