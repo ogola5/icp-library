@@ -1,7 +1,8 @@
-import { $query, $update, Record, StableBTreeMap, Vec, match, Result, nat64, ic, Opt } from 'azle';
+import { $query, $update, Record, StableBTreeMap, Vec, match, Result, nat64, ic, Opt} from 'azle';
 import {v4 as uuidv4} from 'uuid';
 
 type Book = Record<{
+    isBorrowed: boolean;
     id: string;
     title: string;
     author: string;
@@ -9,9 +10,44 @@ type Book = Record<{
     publicationDate: nat64;
     createdAt: nat64;
     updatedAt: Opt<nat64>;
+    
+    
 }>;
 
+
 const bookStorage = new StableBTreeMap<string, Book>(0, 44, 1024);
+
+$update;
+export function borrowBook(id: string): Result<Book, string> {
+    return match(bookStorage.get(id), {
+        Some: (book) => {
+            if (book.isBorrowed) {
+                return Result.Err<Book, string>(`Book with id=${id} is already borrowed`);
+            } else {
+                book.isBorrowed = true;
+                bookStorage.insert(id, book);
+                return Result.Ok(book);
+            }
+        },
+        None: () => Result.Err<Book, string>(`Book with id=${id} not found`)
+    }) as Result<Book, string>;
+}
+
+$update;
+export function returnBook(id: string): Result<Book, string> {
+    return match(bookStorage.get(id), {
+        Some: (book) => {
+            if (book.isBorrowed) {
+                book.isBorrowed = false;
+                bookStorage.insert(id, book);
+                return Result.Ok(book);
+            } else {
+                return Result.Err<Book, string>(`Book with id=${id} is not currently borrowed`);
+            }
+        },
+        None: () => Result.Err<Book, string>(`Book with id=${id} not found`)
+    }) as Result<Book, string>;
+}
 
 $query;
 export function getBooks(): Result<Vec<Book>, string> {
@@ -41,6 +77,8 @@ export function addBook(book: Book): Result<Book, string> {
     try {
         // Generate a unique ID for the book
         book.id = uuidv4();
+        //Initialize isBorrowed to false when adding a new book
+        book.isBorrowed = false;
 
         // Validate the book object
         if (!book.title || !book.author || !book.genre || !book.publicationDate) {

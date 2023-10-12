@@ -6,14 +6,17 @@ type Book = record {
   updatedAt : opt nat64;
   genre : text;
   publicationDate : nat64;
+  isBorrowed : bool;
 };
 type _AzleResult = variant { Ok : Book; Err : text };
 type _AzleResult_1 = variant { Ok : opt Book; Err : text };
 type _AzleResult_2 = variant { Ok : vec Book; Err : text };
 service : () -> {
   addBook : (Book) -> (_AzleResult);
+  borrowBook : (text) -> (_AzleResult);
   deleteBook : (text) -> (_AzleResult_1);
   getBook : (text) -> (_AzleResult) query;
   getBooks : () -> (_AzleResult_2) query;
+  returnBook : (text) -> (_AzleResult);
   updateBook : (text, Book) -> (_AzleResult);
 }
