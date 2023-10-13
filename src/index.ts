@@ -10,7 +10,7 @@ type Book = Record<{
     publicationDate: nat64;
     createdAt: nat64;
     updatedAt: Opt<nat64>;
-    
+    favorite: Opt<boolean>;
     
     
 }>;
@@ -35,6 +35,22 @@ export function searchBooks(query: string): Result<Vec<Book>, string> {
         return Result.Err(`Error searching for books: ${error}`);
     }
 }
+$update
+export function favoriteBook(id: string): Result<Book, string> {
+    return match(bookStorage.get(id), {
+        Some: (book) => {
+            if (book.isBorrowed.toString() !== ic.caller().toString()) {
+                return Result.Err<Book, string>('You are not the borrower of this book');
+            }
+            const favoriteBook: Book = { ...book, favorite: Opt.Some(true) };
+            bookStorage.insert(book.id, favoriteBook);
+            return Result.Ok<Book, string>(favoriteBook);
+        },
+        None: () =>
+            Result.Err<Book, string>(`Couldn't mark book with id=${id} as a favorite. Book not found`),
+    });
+}
+
 $update;
 export function borrowBook(id: string): Result<Book, string> {
     return match(bookStorage.get(id), {
