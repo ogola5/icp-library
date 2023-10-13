@@ -1,5 +1,17 @@
-import { $query, $update, Record, StableBTreeMap, Vec, match, Result, nat64, ic, Opt, Principal} from 'azle';
-import {v4 as uuidv4} from 'uuid';
+import {
+    $query,
+    $update,
+    Record,
+    StableBTreeMap,
+    Vec,
+    match,
+    Result,
+    nat64,
+    ic,
+    Opt,
+    Principal,
+} from 'azle';
+import { v4 as uuidv4 } from 'uuid';
 
 type Book = Record<{
     isBorrowed: boolean;
@@ -11,15 +23,18 @@ type Book = Record<{
     createdAt: nat64;
     updatedAt: Opt<nat64>;
     favorite: Opt<boolean>;
-    
-    
+    comments: Vec<Comment>;
 }>;
 
-
-
-
+type Comment = Record<{
+    id: string;
+    text: string;
+    createdAt: nat64;
+    author: Principal;
+}>;
 
 const bookStorage = new StableBTreeMap<string, Book>(0, 44, 1024);
+
 $query
 export function searchBooks(query: string): Result<Vec<Book>, string> {
     try {
@@ -35,13 +50,15 @@ export function searchBooks(query: string): Result<Vec<Book>, string> {
         return Result.Err(`Error searching for books: ${error}`);
     }
 }
+
 $update
 export function favoriteBook(id: string): Result<Book, string> {
     return match(bookStorage.get(id), {
         Some: (book) => {
-            if (book.isBorrowed.toString() !== ic.caller().toString()) {
-                return Result.Err<Book, string>('You are not the borrower of this book');
+            if (book.isBorrowed) {
+                return Result.Err<Book, string>('Cannot mark a borrowed book as a favorite');
             }
+
             const favoriteBook: Book = { ...book, favorite: Opt.Some(true) };
             bookStorage.insert(book.id, favoriteBook);
             return Result.Ok<Book, string>(favoriteBook);
@@ -51,72 +68,73 @@ export function favoriteBook(id: string): Result<Book, string> {
     });
 }
 
-$update;
+$update
 export function borrowBook(id: string): Result<Book, string> {
     return match(bookStorage.get(id), {
         Some: (book) => {
             if (book.isBorrowed) {
                 return Result.Err<Book, string>(`Book with id=${id} is already borrowed`);
-            } else {
-                book.isBorrowed = true;
-                bookStorage.insert(id, book);
-                return Result.Ok(book);
             }
+
+            const newBook: Book = { ...book, isBorrowed: true };
+            bookStorage.insert(id, newBook);
+
+            return Result.Ok(newBook);
         },
-        None: () => Result.Err<Book, string>(`Book with id=${id} not found`)
+        None: () => Result.Err<Book, string>(`Book with id=${id} not found`),
     }) as Result<Book, string>;
 }
 
-$update;
+$update
 export function returnBook(id: string): Result<Book, string> {
     return match(bookStorage.get(id), {
         Some: (book) => {
-            if (book.isBorrowed) {
-                book.isBorrowed = false;
-                bookStorage.insert(id, book);
-                return Result.Ok(book);
-            } else {
+            if (!book.isBorrowed) {
                 return Result.Err<Book, string>(`Book with id=${id} is not currently borrowed`);
             }
+
+            const newBook: Book = { ...book, isBorrowed: false };
+            bookStorage.insert(id, newBook);
+
+            return Result.Ok(newBook);
         },
-        None: () => Result.Err<Book, string>(`Book with id=${id} not found`)
+        None: () => Result.Err<Book, string>(`Book with id=${id} not found`),
     }) as Result<Book, string>;
 }
 
-$query;
-export function getBooks(): Result<Vec<Book>, string> {
-    try {
-        const books = bookStorage.values();
-        return Result.Ok(books);
-    } catch (error) {
-        return Result.Err(`Error getting books: ${error}`);
-    }
+$update
+export function commentOnBook(id: string, text: string): Result<Comment, string> {
+    return match(bookStorage.get(id), {
+        Some: (book) => {
+            const commentId = uuidv4();
+            const newComment: Comment = {
+                id: commentId,
+                text,
+                createdAt: ic.time(),
+                author: ic.caller(),
+            };
+            book.comments.push(newComment);
+            bookStorage.insert(id, book);
+
+            return Result.Ok(newComment);
+        },
+        None: () => Result.Err<Comment, string>(`Book with id=${id} not found`),
+    }) as Result<Comment, string>;
 }
 
-$query;
-export function getBook(id: string): Result<Book, string> {
-    try {
-        const book = bookStorage.get(id);
-        return match(book, {
-            Some: (book) => Result.Ok<Book, string>(book),
-            None: () => Result.Err<Book, string>(`a book with id=${id} not found`)
-        });
-    } catch (error) {
-        return Result.Err(`Error getting book: ${error}`);
-    }
-}
-
-$update;
+$update
 export function addBook(book: Book): Result<Book, string> {
     try {
         // Generate a unique ID for the book
         book.id = uuidv4();
-        //Initialize isBorrowed to false when adding a new book
+        // Initialize isBorrowed to false when adding a new book
         book.isBorrowed = false;
+        // Initialize comments as an empty array
+        book.comments = [];
 
         // Validate the book object
         if (!book.title || !book.author || !book.genre || !book.publicationDate) {
-            return Result.Err('Missing required fields in book object');
+            return Result.Err('Missing required fields in the book object');
         }
 
         // Update the updatedAt field with the current timestamp
@@ -131,37 +149,50 @@ export function addBook(book: Book): Result<Book, string> {
     }
 }
 
-$update;
+$update
 export function updateBook(id: string, book: Book): Result<Book, string> {
+    return match(bookStorage.get(id), {
+        Some: (existingBook) => {
+            // Validate the updated book object
+            if (!book.title || !book.author || !book.genre || !book.publicationDate) {
+                return Result.Err('Missing required fields in the book object');
+            }
+
+            // Create a new book object with the updated fields
+            const updatedBook: Book = {
+                ...existingBook,
+                ...book,
+                updatedAt: Opt.Some(ic.time()),
+            };
+
+            // Update the book in bookStorage
+            bookStorage.insert(id, updatedBook);
+
+            return Result.Ok(updatedBook);
+        },
+        None: () => Result.Err<Book, string>(`Book with id=${id} does not exist`),
+    }) as Result<Book, string>;
+}
+
+$query
+export function getBooks(): Result<Vec<Book>, string> {
     try {
-        // Validate the updated book object
-        if (!book.title || !book.author || !book.genre || !book.publicationDate) {
-            return Result.Err('Missing required fields in book object');
-        }
-
-        // Get the existing book
-        const existingBook = bookStorage.get(id);
-        if (!existingBook) {
-            return Result.Err(`Book with ID ${id} does not exist`);
-        }
-
-        // Create a new book object with the updated fields
-        const updatedBook: Book = {
-            ...existingBook,
-            ...book,
-            updatedAt: Opt.Some(ic.time())
-        };
-
-        // Update the book in bookStorage
-        bookStorage.insert(id, updatedBook);
-
-        return Result.Ok(updatedBook);
+        const books = bookStorage.values();
+        return Result.Ok(books);
     } catch (error) {
-        return Result.Err(`Error updating book: ${error}`);
+        return Result.Err(`Error getting books: ${error}`);
     }
 }
 
-$update;
+$query
+export function getBook(id: string): Result<Book, string> {
+    return match(bookStorage.get(id), {
+        Some: (book) => Result.Ok<Book, string>(book),
+        None: () => Result.Err<Book, string>(`Book with id=${id} not found`),
+    }) as Result<Book, string>;
+}
+
+$update
 export function deleteBook(id: string): Result<Opt<Book>, string> {
     try {
         // Validate the id parameter
@@ -180,20 +211,20 @@ export function deleteBook(id: string): Result<Opt<Book>, string> {
         return Result.Err(`Error deleting book: ${error}`);
     }
 }
-function isValidUUID(id: string):boolean {
-    throw new Error('Function not implemented.');
+
+export function isValidUUID(id: string): boolean {
+    return /^[\da-f]{8}-([\da-f]{4}-){3}[\da-f]{12}$/i.test(id);
 }
-// a workaround to make uuid package work with Azle
+// A workaround to make the uuid package work with Azle
 globalThis.crypto = {
     // @ts-ignore
-   getRandomValues: () => {
-       let array = new Uint8Array(32);
+    getRandomValues: () => {
+        let array = new Uint8Array(32);
 
-       for (let i = 0; i < array.length; i++) {
-           array[i] = Math.floor(Math.random() * 256);
-       }
+        for (let i = 0; i < array.length; i++) {
+            array[i] = Math.floor(Math.random() * 256);
+        }
 
-       return array;
-   }
-};
-
+        return array;
+    },
+}

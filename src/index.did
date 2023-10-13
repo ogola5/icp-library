@@ -6,20 +6,29 @@ type Book = record {
   updatedAt : opt nat64;
   genre : text;
   publicationDate : nat64;
+  comments : vec Comment;
   isBorrowed : bool;
   favorite : opt bool;
 };
+type Comment = record {
+  id : text;
+  createdAt : nat64;
+  "text" : text;
+  author : principal;
+};
 type _AzleResult = variant { Ok : Book; Err : text };
-type _AzleResult_1 = variant { Ok : opt Book; Err : text };
-type _AzleResult_2 = variant { Ok : vec Book; Err : text };
+type _AzleResult_1 = variant { Ok : Comment; Err : text };
+type _AzleResult_2 = variant { Ok : opt Book; Err : text };
+type _AzleResult_3 = variant { Ok : vec Book; Err : text };
 service : () -> {
   addBook : (Book) -> (_AzleResult);
   borrowBook : (text) -> (_AzleResult);
-  deleteBook : (text) -> (_AzleResult_1);
+  commentOnBook : (text, text) -> (_AzleResult_1);
+  deleteBook : (text) -> (_AzleResult_2);
   favoriteBook : (text) -> (_AzleResult);
   getBook : (text) -> (_AzleResult) query;
-  getBooks : () -> (_AzleResult_2) query;
+  getBooks : () -> (_AzleResult_3) query;
   returnBook : (text) -> (_AzleResult);
-  searchBooks : (text) -> (_AzleResult_2) query;
+  searchBooks : (text) -> (_AzleResult_3) query;
   updateBook : (text, Book) -> (_AzleResult);
 }
