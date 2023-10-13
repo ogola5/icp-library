@@ -18,5 +18,6 @@ service : () -> {
   getBook : (text) -> (_AzleResult) query;
   getBooks : () -> (_AzleResult_2) query;
   returnBook : (text) -> (_AzleResult);
+  searchBooks : (text) -> (_AzleResult_2) query;
   updateBook : (text, Book) -> (_AzleResult);
 }

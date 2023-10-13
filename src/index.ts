@@ -1,4 +1,4 @@
-import { $query, $update, Record, StableBTreeMap, Vec, match, Result, nat64, ic, Opt} from 'azle';
+import { $query, $update, Record, StableBTreeMap, Vec, match, Result, nat64, ic, Opt, Principal} from 'azle';
 import {v4 as uuidv4} from 'uuid';
 
 type Book = Record<{
@@ -12,11 +12,29 @@ type Book = Record<{
     updatedAt: Opt<nat64>;
     
     
+    
 }>;
 
 
-const bookStorage = new StableBTreeMap<string, Book>(0, 44, 1024);
 
+
+
+const bookStorage = new StableBTreeMap<string, Book>(0, 44, 1024);
+$query
+export function searchBooks(query: string): Result<Vec<Book>, string> {
+    try {
+        const lowerCaseQuery = query.toLowerCase();
+        const filteredBooks = bookStorage.values().filter(
+            (book) =>
+                book.title.toLowerCase().includes(lowerCaseQuery) ||
+                book.author.toLowerCase().includes(lowerCaseQuery) ||
+                book.genre.toLowerCase().includes(lowerCaseQuery)
+        );
+        return Result.Ok(filteredBooks);
+    } catch (error) {
+        return Result.Err(`Error searching for books: ${error}`);
+    }
+}
 $update;
 export function borrowBook(id: string): Result<Book, string> {
     return match(bookStorage.get(id), {
