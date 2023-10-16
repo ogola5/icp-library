@@ -31,10 +31,11 @@ npm run canister_deploy_local
 Functionality
 This library canister provides the following functionalities:
 
-###searchBooks(query: string): Result<Vec<Book>, string>
+ Search book functionality
+searchBooks(query: string): Result<Vec<Book>, string>
 Search for books in the collection based on a query. The function returns a list of books matching the query.
 
-###favoriteBook(id: string): Result<Book, string>
+favoriteBook(id: string): Result<Book, string>
 Mark a book as a favorite. This function checks if the book is borrowed and ensures you cannot mark borrowed books as favorites.
 
 borrowBook(id: string): Result<Book, string>
