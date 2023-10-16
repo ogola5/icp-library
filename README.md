@@ -1,34 +1,44 @@
-# library
+markdown
+Copy code
+# Library Canister
 
-Welcome to your first Azle project! This example project will help you to deploy your first canister (application) to the Internet Computer (IC) decentralized cloud. It is a simple getter/setter canister. You can always refer to [The Azle Book](https://demergent-labs.github.io/azle/) for more in-depth documentation.
+Welcome to your first Azle project! This example project helps you deploy your first canister (application) to the Internet Computer (IC) decentralized cloud. It's a simple getter/setter canister, and you can find more in-depth documentation in [The Azle Book](https://demergent-labs.github.io/azle/).
 
-`dfx` is the tool you will use to interact with the IC locally and on mainnet. If you don't already have it installed:
+## Prerequisites
+
+Before using this application, make sure you have the following dependencies installed:
+
+### Installing `dfx`
+
+`dfx` is the tool you will use to interact with the IC locally and on the mainnet. If you don't already have it installed, run the following command:
 
 ```bash
 npm run dfx_install
-```
+Starting a Replica
+You will want to start a replica, which is a local instance of the IC that you can deploy your canisters to. Run the following command to start the replica:
 
-Next you will want to start a replica, which is a local instance of the IC that you can deploy your canisters to:
-
-```bash
+bash
+Copy code
 npm run replica_start
-```
+To stop the replica when you're done:
 
-If you ever want to stop the replica:
-
-```bash
+bash
+Copy code
 npm run replica_stop
-```
+Local Deployment
+To deploy your canister locally, follow these steps:
 
-Now you can deploy your canister locally:
-
-```bash
+Install project dependencies:
+bash
+Copy code
 npm install
+Deploy the canister:
+bash
+Copy code
 npm run canister_deploy_local
-```
+Functionality
+This library canister provides the following functionalities:
 
-To call the methods on your canister:
-Functions
 searchBooks(query: string): Result<Vec<Book>, string>
 Search for books in the collection based on a query. The function returns a list of books matching the query.
 
@@ -62,14 +72,5 @@ Delete a book from the collection based on its ID.
 isValidUUID(id: string): boolean
 A utility function to check the validity of a UUID.
 
-License
-This code is provided under the LICENSE file.
 
-
-```
-
-Assuming you have [created a cycles wallet](https://internetcomputer.org/docs/current/developer-docs/quickstart/network-quickstart) and funded it with cycles, you can deploy to mainnet like this:
-
-```bash
-npm run canister_deploy_mainnet
 ```
