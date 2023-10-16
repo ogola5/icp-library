@@ -1,5 +1,5 @@
-markdown
-Copy code
+
+
 # Library Canister
 
 Welcome to your first Azle project! This example project helps you deploy your first canister (application) to the Internet Computer (IC) decentralized cloud. It's a simple getter/setter canister, and you can find more in-depth documentation in [The Azle Book](https://demergent-labs.github.io/azle/).
@@ -24,9 +24,14 @@ Install project dependencies:
 
 
 npm install
-Deploy the canister:
 
-npm run canister_deploy_local
+Deploy the canister:
+dfx start --clean
+
+dfx deploy
+
+
+
 `Functionality`
 This library canister provides the following functionalities:
 
