@@ -17,14 +17,6 @@ npm run dfx_install
 Starting a Replica
 You will want to start a replica, which is a local instance of the IC that you can deploy your canisters to. Run the following command to start the replica:
 
-bash
-Copy code
-npm run replica_start
-To stop the replica when you're done:
-
-bash
-Copy code
-npm run replica_stop
 Local Deployment
 To deploy your canister locally, follow these steps:
 
@@ -39,10 +31,10 @@ npm run canister_deploy_local
 Functionality
 This library canister provides the following functionalities:
 
-searchBooks(query: string): Result<Vec<Book>, string>
+###searchBooks(query: string): Result<Vec<Book>, string>
 Search for books in the collection based on a query. The function returns a list of books matching the query.
 
-favoriteBook(id: string): Result<Book, string>
+###favoriteBook(id: string): Result<Book, string>
 Mark a book as a favorite. This function checks if the book is borrowed and ensures you cannot mark borrowed books as favorites.
 
 borrowBook(id: string): Result<Book, string>
@@ -72,5 +64,7 @@ Delete a book from the collection based on its ID.
 isValidUUID(id: string): boolean
 A utility function to check the validity of a UUID.
 
+License
+This code is provided under the LICENSE file.
 
-```
+css
