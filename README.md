@@ -28,16 +28,44 @@ npm run canister_deploy_local
 ```
 
 To call the methods on your canister:
+Functions
+searchBooks(query: string): Result<Vec<Book>, string>
+Search for books in the collection based on a query. The function returns a list of books matching the query.
 
-```bash
-npm run canister_call_get_message
-npm run canister_call_set_message
-```
+favoriteBook(id: string): Result<Book, string>
+Mark a book as a favorite. This function checks if the book is borrowed and ensures you cannot mark borrowed books as favorites.
 
-If you run the above commands and then call `npm run canister_call_get_message` you should see:
+borrowBook(id: string): Result<Book, string>
+Borrow a book. This function sets the isBorrowed property to true for the specified book.
 
-```bash
-("Hello world!")
+returnBook(id: string): Result<Book, string>
+Return a borrowed book. This function sets the isBorrowed property to false for the specified book.
+
+commentOnBook(id: string, text: string): Result<Comment, string>
+Add a comment to a book. This function creates a new comment with a unique ID and stores it with the book.
+
+addBook(book: Book): Result<Book, string>
+Add a new book to the collection. This function validates the book object and ensures required fields are provided.
+
+updateBook(id: string, book: Book): Result<Book, string>
+Update an existing book with new data. This function validates the book object and merges it with the existing book.
+
+getBooks(): Result<Vec<Book>, string>
+Get a list of all books in the collection.
+
+getBook(id: string): Result<Book, string>
+Get the details of a specific book by its ID.
+
+deleteBook(id: string): Result<Opt<Book>, string>
+Delete a book from the collection based on its ID.
+
+isValidUUID(id: string): boolean
+A utility function to check the validity of a UUID.
+
+License
+This code is provided under the LICENSE file.
+
+
 ```
 
 Assuming you have [created a cycles wallet](https://internetcomputer.org/docs/current/developer-docs/quickstart/network-quickstart) and funded it with cycles, you can deploy to mainnet like this:
